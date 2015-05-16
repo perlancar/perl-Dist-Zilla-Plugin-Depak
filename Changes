@@ -1,5 +1,11 @@
 Revision history for Dist-Zilla-Plugin-Fatten
 
+0.02    2015-05-16 (PERLANCAR)
+
+	- Replace # FATTENED_MODULES and # FATTENED_DISTS with 'our
+	  @FATTENED_MODULES' and 'our @FATTENED_DISTS' to help tools.
+
+
 0.01    2015-04-11 (PERLANCAR)
 
          - First release.
