@@ -1,5 +1,10 @@
 Revision history for Dist-Zilla-Plugin-Fatten
 
+0.03    2015-05-16 (PERLANCAR)
+
+        - [Bugfix] Fix bug when dumping array.
+
+
 0.02    2015-05-16 (PERLANCAR)
 
 	- Replace # FATTENED_MODULES and # FATTENED_DISTS with 'our
