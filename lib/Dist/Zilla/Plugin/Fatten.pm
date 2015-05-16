@@ -111,7 +111,7 @@ sub munge_module {
         $munged++;
         $self->{_mods} //= {};
         $content =~ s/(^#\s*FATTENED_MODULES\s*$)/
-            "our \@FATTENED_MODULES = \@{" . dmp(sort keys %{$self->{_mods}}) . "}; $1"/em;
+            "our \@FATTENED_MODULES = \@{" . dmp([sort keys %{$self->{_mods}}]) . "}; $1"/em;
     }
 
     if ($content =~ /^#\s*FATTENED_DISTS\s*$/m) {
@@ -129,7 +129,7 @@ sub munge_module {
             }
         }
         $content =~ s/(^#\s*FATTENED_DISTS\s*$)/
-            "our \@FATTENED_DISTS = \@{" . dmp(sort keys %{$self->{_dists}}) . "}; $1"/em;
+            "our \@FATTENED_DISTS = \@{" . dmp([sort keys %{$self->{_dists}}]) . "}; $1"/em;
     }
 
     if ($munged) {
