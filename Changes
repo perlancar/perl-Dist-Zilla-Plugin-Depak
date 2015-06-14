@@ -1,5 +1,12 @@
 Revision history for Dist-Zilla-Plugin-Fatten
 
+0.04    2015-06-14 (PERLANCAR)
+
+        - No functional changes.
+
+        - Re-release to get indexed by PAUSE.
+
+
 0.03    2015-05-16 (PERLANCAR)
 
         - [Bugfix] Fix bug when dumping array.
