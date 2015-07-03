@@ -1,4 +1,4 @@
-package Dist::Zilla::Plugin::Fatten;
+package Dist::Zilla::Plugin::Depak;
 
 # DATE
 # VERSION
@@ -12,6 +12,7 @@ use Data::Dmp;
 use File::Temp qw(tempfile);
 use File::Which;
 use IPC::System::Options qw(system);
+use JSON;
 use List::Util qw(first);
 
 use Moose;
@@ -22,7 +23,6 @@ with (
     'Dist::Zilla::Role::FileMunger',
 );
 
-# TODO: fatten_path?
 has include_script => (is => 'rw');
 has exclude_script => (is => 'rw');
 
@@ -61,7 +61,7 @@ sub munge_files {
 sub munge_script {
     my ($self, $file) = @_;
 
-    $self->log_fatal(["Can't find fatten in PATH"]) unless which("fatten");
+    $self->log_fatal(["Can't find depak in PATH"]) unless which("depak");
 
     my $source;
     if ($file->isa("Dist::Zilla::File::OnDisk")) {
@@ -79,24 +79,31 @@ sub munge_script {
         $target = $filename;
     }
 
-    my @fatten_cmd = ("fatten", "-i", $source, "-o", $target, "--overwrite");
-    if (-f "fatten.conf") {
-        push @fatten_cmd, "--config-path", "fatten.conf";
+    # we use the depak CLI instead of App::depak because we want to use
+    # --config-profile
+    my @depak_cmd = ("depak", "-i", $source, "-o", $target, "--overwrite", "--json");
+    if (-f "depak.conf") {
+        push @depak_cmd, "--config-path", "depak.conf";
     }
-    $self->log_debug(["Fatpacking %s: %s", $file->{name}, \@fatten_cmd]);
-    system({die=>1, log=>1, shell=>0}, @fatten_cmd);
+    $self->log_debug(["Depak-ing %s: %s", $file->{name}, \@depak_cmd]);
+    my $stdout;
+    system({die=>1, log=>1, shell=>0, capture_stdout=>\$stdout}, @depak_cmd);
 
     my $content = do {
         open my($fh), "<", $target or
-            $self->log_fatal(["BUG? Can't open fatten output at %s: $!", $target]);
+            $self->log_fatal(["BUG? Can't open depak output at %s: $!", $target]);
         local $/;
         ~~<$fh>;
     };
 
-    while ($content =~ /^\$fatpacked\{"(.+?)\.pm"\}/mg) {
-        my $mod = $1;
-        $mod =~ s!/!::!g;
-        $self->{_mods}{$mod} = 0;
+    $self->log_debug(["depak output: <%s>"], $stdout);
+
+    my $depak_res = JSON::decode_json($stdout);
+    $self->log_fatal(["depak failed: %s", $depak_res])
+        unless $depak_res->[0] == 200;
+
+    for (@{ $depak_res->[3]{'function.included_modules'} }) {
+        $self->{_mods}{$_} = 0;
     }
 
     $file->content($content);
@@ -107,14 +114,14 @@ sub munge_module {
 
     my $munged;
     my $content = $file->content;
-    if ($content =~ /^#\s*FATTENED_MODULES\s*$/m) {
+    if ($content =~ /^#\s*PACKED_MODULES\s*$/m) {
         $munged++;
         $self->{_mods} //= {};
-        $content =~ s/(^#\s*FATTENED_MODULES\s*$)/
-            "our \@FATTENED_MODULES = \@{" . dmp([sort keys %{$self->{_mods}}]) . "}; $1"/em;
+        $content =~ s/(^#\s*PACKED_MODULES\s*$)/
+            "our \@PACKED_MODULES = \@{" . dmp([sort keys %{$self->{_mods}}]) . "}; $1"/em;
     }
 
-    if ($content =~ /^#\s*FATTENED_DISTS\s*$/m) {
+    if ($content =~ /^#\s*PACKED_DISTS\s*$/m) {
         $munged++;
         unless ($self->{_dists}) {
             if (!keys %{ $self->{_mods} }) {
@@ -128,8 +135,8 @@ sub munge_module {
                 }
             }
         }
-        $content =~ s/(^#\s*FATTENED_DISTS\s*$)/
-            "our \@FATTENED_DISTS = \@{" . dmp([sort keys %{$self->{_dists}}]) . "}; $1"/em;
+        $content =~ s/(^#\s*PACKED_DISTS\s*$)/
+            "our \@PACKED_DISTS = \@{" . dmp([sort keys %{$self->{_dists}}]) . "}; $1"/em;
     }
 
     if ($munged) {
@@ -139,49 +146,50 @@ sub munge_module {
 
 __PACKAGE__->meta->make_immutable;
 1;
-# ABSTRACT: Fatpack scripts during build using 'fatten'
+# ABSTRACT: Pack dependencies onto scripts during build using 'depak'
 
 =for Pod::Coverage .+
 
 =head1 SYNOPSIS
 
-In C<dist.ini>:
+In F<dist.ini>:
 
- [Fatten]
+ [Depak]
  ;;; the default is to include all scripts, but use below to include only some
  ;;; scripts
  ;include_script=bin/script1
  ;include_script=bin/script2
 
-In C<fatten.conf> in dist top-level directory, put your L<fatten> configuration.
+In C<depak.conf> in dist top-level directory, put your L<depak> configuration.
 
-During build, your scripts will be replaced with the fatpacked version.
+During build, your scripts will be replaced with the packed version.
 
-Also, you should also have a module named C<Something::Fattened> (i.e. whose
-name ends in C<::Fattened>), which contains:
+Also, you should also have a module named C<Something::Packed> (i.e. whose name
+ends in C<::Packed>), which contains:
 
- # FATTENED_MODULES
- # FATTENED_DISTS
+ # PACKED_MODULES
+ # PACKED_DISTS
 
 During build, these will be replaced with:
 
- our @FATTENED_MODULES = (...); # FATTENED_MODULES
- our @FATTENED_DISTS = (...); # FATTENED_DISTS
+ our @PACKED_MODULES = (...); # PACKED_MODULES
+ our @PACKED_DISTS = (...); # PACKED_DISTS
 
 
 =head1 DESCRIPTION
 
-This plugin will replace your scripts with the fatpacked version. Fatpacking
-will be done using L<fatten>.
+This plugin will replace your scripts with the packed version (that is, scripts
+that have their dependencies packed onto themselves). Packing will be done using
+L<depak>.
 
-If C<fatten.conf> exists in your dist's top-level directory, it will be used as
-the fatten configuration.
+If F<depak.conf> exists in your dist's top-level directory, it will be used as
+the depak configuration.
 
-In addition to replacing scripts with the fatpacked version, it will also search
-for directives C<# FATTENED_MODULES> and C<# FATTENED_DISTS> in module files and
-replace them with C<@FATTENED_MODULES> and C<@FATTENED_DISTS>. The
-C<@FATTENED_MODULES> array lists all the modules that are included in the one of
-the scripts. This can be useful for tools that might need it. C<@FATTENED_DISTS>
+In addition to replacing scripts with the packed version, it will also search
+for directives C<# PACKED_MODULES> and C<# PACKED_DISTS> in module files and
+replace them with C<@PACKED_MODULES> and C<@PACKED_DISTS>. The
+C<@PACKED_MODULES> array lists all the modules that are included in the one of
+the scripts. This can be useful for tools that might need it. C<@PACKED_DISTS>
 array lists all the dists that are included in one of the scripts. This also can
 be useful for tools that might need it, like
 L<Dist::Zilla::Plugin::PERLANCAR::CheckDepDists>.
@@ -202,4 +210,4 @@ Exclude a script. Can be specified multiple times.
 
 =head1 SEE ALSO
 
-L<fatten>
+L<depak>
