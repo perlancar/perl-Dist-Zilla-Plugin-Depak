@@ -9,6 +9,7 @@ use warnings;
 
 use App::lcpan::Call qw(call_lcpan_script);
 use Data::Dmp;
+use File::Slurper qw(read_binary write_binary);
 use File::Temp qw(tempfile);
 use File::Which;
 use IPC::System::Options qw(system);
@@ -63,44 +64,46 @@ sub munge_script {
 
     $self->log_fatal(["Can't find depak in PATH"]) unless which("depak");
 
+    # we use the depak CLI instead of App::depak because we want to use
+    # --config-profile
+
+    # since we're dealing with CLI, we need actual files
+
     my $source;
     if ($file->isa("Dist::Zilla::File::OnDisk")) {
         $source = $file->name;
     } else {
         my ($fh, $filename) = tempfile();
         $source = $filename;
-        open $fh, ">", $filename;
-        print $fh $file->content;
-        close $fh;
+        write_binary($filename, $file->content);
     }
+
     my $target;
     {
         my ($fh, $filename) = tempfile();
         $target = $filename;
     }
 
-    # we use the depak CLI instead of App::depak because we want to use
-    # --config-profile
-    my @depak_cmd = ("depak", "-i", $source, "-o", $target, "--overwrite", "--json");
+    # the --json output is so that we can read the list of included modules
+    my @depak_cmd = ("depak", "-i", $source, "-o", $target, "--overwrite",
+                     "--json");
+
     if (-f "depak.conf") {
         push @depak_cmd, "--config-path", "depak.conf";
     }
+
     $self->log_debug(["Depak-ing %s: %s", $file->{name}, \@depak_cmd]);
     my $stdout;
     system({die=>1, log=>1, shell=>0, capture_stdout=>\$stdout}, @depak_cmd);
 
-    my $content = do {
-        open my($fh), "<", $target or
-            $self->log_fatal(["BUG? Can't open depak output at %s: $!", $target]);
-        local $/;
-        ~~<$fh>;
-    };
-
-    $self->log_debug(["depak output: <%s>"], $stdout);
-
     my $depak_res = JSON::decode_json($stdout);
     $self->log_fatal(["depak failed: %s", $depak_res])
         unless $depak_res->[0] == 200;
+
+    my $content = read_binary($target);
+
+    $self->log_debug(["depak output: %s (%s, %d bytes)",
+                      $file->{name}, $target, length($content)]);
 
     for (@{ $depak_res->[3]{'function.included_modules'} }) {
         $self->{_mods}{$_} = 0;
