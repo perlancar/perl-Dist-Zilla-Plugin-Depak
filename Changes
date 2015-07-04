@@ -1,5 +1,10 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.06    2015-07-04 (PERLANCAR)
+
+	- Fix encoding issue (need to set to 'bytes').
+
+
 0.05    2015-07-04 (PERLANCAR)
 
         - Rename dist from Dist-Zilla-Plugin-Fatten to Dist-Zilla-Plugin-Depak,
