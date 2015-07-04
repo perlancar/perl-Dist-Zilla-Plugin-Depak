@@ -1,8 +1,9 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
-0.05    2015-07-03 (PERLANCAR) (unreleased)
+0.05    2015-07-04 (PERLANCAR)
 
-        - Rename dist from Dist-Zilla-Plugin-Fatten to Dist-Zilla-Plugin-Depak.
+        - Rename dist from Dist-Zilla-Plugin-Fatten to Dist-Zilla-Plugin-Depak,
+          use depak instead of fatten.
 
 
 0.04    2015-06-14 (PERLANCAR)
