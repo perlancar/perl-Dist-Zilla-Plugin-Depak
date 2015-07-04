@@ -110,6 +110,7 @@ sub munge_script {
     }
 
     $file->content($content);
+    $file->encoding('bytes');
 }
 
 sub munge_module {
