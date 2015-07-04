@@ -150,7 +150,7 @@ sub munge_module {
 
 __PACKAGE__->meta->make_immutable;
 1;
-# ABSTRACT: Pack dependencies onto scripts during build using 'depak'
+# ABSTRACT: (DEPRECATED) Pack dependencies onto scripts during build using 'depak'
 
 =for Pod::Coverage .+
 
@@ -178,6 +178,12 @@ During build, these will be replaced with:
 
  our @PACKED_MODULES = (...); # PACKED_MODULES
  our @PACKED_DISTS = (...); # PACKED_DISTS
+
+
+=head1 DEPRECATION NOTICE
+
+L<Dist::Zilla::Plugin::DepakFile> is now preferred, as it is more flexible (can
+pack into a new file).
 
 
 =head1 DESCRIPTION
