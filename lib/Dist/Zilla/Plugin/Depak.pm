@@ -9,6 +9,7 @@ use warnings;
 
 use App::lcpan::Call qw(call_lcpan_script);
 use Data::Dmp;
+use Dist::Zilla::File::InMemory;
 use File::Slurper qw(read_binary write_binary);
 use File::Temp qw(tempfile);
 use File::Which;
@@ -21,6 +22,7 @@ with (
     'Dist::Zilla::Role::FileFinderUser' => {
         default_finders => [':ExecFiles', ':InstallModules'],
     },
+    'Dist::Zilla::Role::FileGatherer',
     'Dist::Zilla::Role::FileMunger',
 );
 
@@ -109,8 +111,12 @@ sub munge_script {
         $self->{_mods}{$_} = 0;
     }
 
-    $file->content($content);
-    $file->encoding('bytes');
+    # re-add the file instead of changing the content, so we can re-set the
+    # encoding to 'bytes'
+    my $newfile = Dist::Zilla::File::InMemory->new(
+        encoding=>'bytes', name=>$file->{name}, content => $content);
+    $self->zilla->prune_file($file);
+    $self->add_file($newfile);
 }
 
 sub munge_module {
@@ -148,9 +154,11 @@ sub munge_module {
     }
 }
 
+sub gather_files {}
+
 __PACKAGE__->meta->make_immutable;
 1;
-# ABSTRACT: (DEPRECATED) Pack dependencies onto scripts during build using 'depak'
+# ABSTRACT: Pack dependencies onto scripts during build using 'depak'
 
 =for Pod::Coverage .+
 
