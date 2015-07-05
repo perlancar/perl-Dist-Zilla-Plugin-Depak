@@ -10,8 +10,9 @@ use warnings;
 use App::lcpan::Call qw(call_lcpan_script);
 use Data::Dmp;
 use Dist::Zilla::File::InMemory;
+use File::Path qw(make_path);
 use File::Slurper qw(read_binary write_binary);
-use File::Temp qw(tempfile);
+use File::Temp qw(tempfile tempdir);
 use File::Which;
 use IPC::System::Options qw(system);
 use JSON;
@@ -86,9 +87,35 @@ sub munge_script {
         $target = $filename;
     }
 
+    # we want to include the built version of dist modules and not the raw
+    # source ones (because we want version numbers to be filled with
+    # OurPkgVersion and so on). but dzil writes the dist to disk at a later
+    # stage. so we dump the modules to a temp dir. but note that we need to pack
+    # the scripts first before munging the modules (replacing #PACKED_MODULES,
+    # #PACKED_DISTS), so the version of modules included in the script won't
+    # have these directives replaced yet.
+    state $has_written_modules;
+    my $mods_tempdir;
+    {
+        last if $has_written_modules++;
+        $mods_tempdir = tempdir(CLEANUP => 1);
+        $self->log_debug(["creating tempdir containing dist modules: %s", $mods_tempdir]);
+        my @modules  = grep { $_->name =~ m!^lib/! } @{ $self->found_files };
+        for my $modobj (@modules) {
+            my ($dir, $name) = $modobj->{name} =~ m!lib/(?:(.*)/)?(.+)!;
+            make_path("$mods_tempdir/$dir") if length($dir);
+            my $target = "$mods_tempdir/$dir/$name";
+            $self->log_debug(["  writing %s", $target]);
+            write_binary($target, $modobj->content);
+        }
+    }
+
     # the --json output is so that we can read the list of included modules
-    my @depak_cmd = ("depak", "-i", $source, "-o", $target, "--overwrite",
-                     "--json");
+    my @depak_cmd = (
+        "depak", "--include-dir", $mods_tempdir,
+        "-i", $source, "-o", $target, "--overwrite",
+        "--json",
+    );
 
     if (-f "depak.conf") {
         push @depak_cmd, "--config-path", "depak.conf";
