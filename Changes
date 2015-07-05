@@ -1,5 +1,12 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.09    2015-07-05 (PERLANCAR)
+
+	- Write built modules to a tempdir and feed it to depak via
+	  --include-dir, so that packed script contains built version of
+	  dist modules.
+
+
 0.08    2015-07-04 (PERLANCAR)
 
 	- Undeprecate, encoding issue (can't re-set encoding of a script
