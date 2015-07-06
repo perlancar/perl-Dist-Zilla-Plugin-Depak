@@ -115,7 +115,9 @@ sub munge_script {
     $self->log_debug(["depak output: %s (%s, %d bytes)",
                       $file->{name}, $target, length($content)]);
 
-    for (@{ $depak_res->[3]{'function.included_modules'} }) {
+    #$self->log_debug(["depak result: %s", $depak_res]);
+
+    for (@{ $depak_res->[3]{'func.included_modules'} }) {
         $self->{_mods}{$_} = 0;
     }
 
@@ -158,6 +160,7 @@ sub munge_module {
     }
 
     if ($munged) {
+        $self->log_debug(["Setting \@PACKED_MODULES / \@PACKED_DISTS in %s", $file->{name}]);
         $file->content($content);
     }
 }
