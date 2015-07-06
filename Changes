@@ -1,5 +1,13 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.10    2015-07-06 (PERLANCAR)
+
+	- No functional changes.
+
+	- [Refactor] Move the functionality of writing built modules to dir
+	  to a separate role.
+
+
 0.09    2015-07-05 (PERLANCAR)
 
 	- Write built modules to a tempdir and feed it to depak via
