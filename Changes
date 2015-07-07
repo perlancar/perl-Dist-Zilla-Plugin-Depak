@@ -1,5 +1,12 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.12    2015-07-07 (PERLANCAR)
+
+	- No functional changes.
+
+	- Remove old deprecation notice.
+
+
 0.11    2015-07-06 (PERLANCAR)
 
 	- [Bugfix] Typo (referred to wrong hash key).
