@@ -199,12 +199,6 @@ During build, these will be replaced with:
  our @PACKED_DISTS = (...); # PACKED_DISTS
 
 
-=head1 DEPRECATION NOTICE
-
-L<Dist::Zilla::Plugin::DepakFile> is now preferred, as it is more flexible (can
-pack into a new file).
-
-
 =head1 DESCRIPTION
 
 This plugin will replace your scripts with the packed version (that is, scripts
