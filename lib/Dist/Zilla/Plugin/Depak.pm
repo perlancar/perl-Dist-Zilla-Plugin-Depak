@@ -69,14 +69,16 @@ sub munge_script {
     $self->log_fatal(["Can't find depak in PATH"]) unless which("depak");
 
     # we use the depak CLI instead of App::depak because we want to use
-    # --config-profile
+    # --config-profile.
+    my $profile = $file->name;
+    $profile =~ s!.+[\\/]!!;
 
-    # since we're dealing with CLI, we need actual files
+    # since we're dealing with CLI, we need actual files. even a modified
+    # DZF:OnDisk might not have the actual file located in $file->name, so we
+    # write to tempfile first.
 
     my $source;
-    if ($file->isa("Dist::Zilla::File::OnDisk")) {
-        $source = $file->name;
-    } else {
+    {
         my ($fh, $filename) = tempfile();
         $source = $filename;
         write_binary($filename, $file->content);
@@ -93,13 +95,17 @@ sub munge_script {
 
     # the --json output is so that we can read the list of included modules
     my @depak_cmd = (
-        "depak", "--include-dir", $mods_tempdir,
+        "depak",
+        "--include-dir", $mods_tempdir,
         "-i", $source, "-o", $target, "--overwrite",
         "--json",
     );
 
     if (-f "depak.conf") {
-        push @depak_cmd, "--config-path", "depak.conf";
+        push @depak_cmd, (
+            "--config-profile", $profile,
+            "--config-path", "depak.conf",
+        );
     }
 
     $self->log_debug(["Depak-ing %s: %s", $file->{name}, \@depak_cmd]);
