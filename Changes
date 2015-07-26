@@ -1,5 +1,10 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.13    2015-07-27 (PERLANCAR)
+
+	- Deal with modified DZF:OnDisk file.
+
+
 0.12    2015-07-07 (PERLANCAR)
 
 	- No functional changes.
