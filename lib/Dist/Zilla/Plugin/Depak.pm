@@ -140,14 +140,19 @@ sub munge_module {
 
     my $munged;
     my $content = $file->content;
-    if ($content =~ /^#\s*PACKED_MODULES\s*$/m) {
+    my @pod;
+
+    if ($content =~ /^#\s*(PACKED_MODULES|PACKED_CONTENTS_POD)\s*$/m) {
         $munged++;
         $self->{_mods} //= {};
         $content =~ s/(^#\s*PACKED_MODULES\s*$)/
             "our \@PACKED_MODULES = \@{" . dmp([sort keys %{$self->{_mods}}]) . "}; $1"/em;
+        push @pod, "Modules packed into this distribution:\n\n=over\n\n",
+            (map {"=item * $_\n\n"} sort keys %{$self->{_mods}}),
+            "\n=back\n\n";
     }
 
-    if ($content =~ /^#\s*PACKED_DISTS\s*$/m) {
+    if ($content =~ /^#\s*(PACKED_DISTS|PACKED_CONTENTS_POD)\s*$/m) {
         $munged++;
         unless ($self->{_dists}) {
             if (!keys %{ $self->{_mods} }) {
@@ -163,10 +168,22 @@ sub munge_module {
         }
         $content =~ s/(^#\s*PACKED_DISTS\s*$)/
             "our \@PACKED_DISTS = \@{" . dmp([sort keys %{$self->{_dists}}]) . "}; $1"/em;
+        push @pod, "Distributions packed into this distribution:\n\n=over\n\n",
+            (map {"=item * $_\n\n"} sort keys %{$self->{_dists}}),
+            "\n=back\n\n";
+    }
+
+    if ($content =~ /^#\s*PACKED_CONTENTS_POD\s*$/m) {
+        $munged++;
+        $content =~ s/(^#\s*PACKED_CONTENTS_POD\s*$)/
+            join("", @pod)/em;
+        push @pod, "Distributions packed inside this script:\n\n=over\n\n",
+            (map {"=item * $_\n\n"} sort keys %{$self->{_dists}}),
+            "\n=back\n\n";
     }
 
     if ($munged) {
-        $self->log_debug(["Setting \@PACKED_MODULES / \@PACKED_DISTS in %s", $file->{name}]);
+        $self->log_debug(["Setting \@PACKED_MODULES / \@PACKED_DISTS / PACKED_CONTENTS_POD in %s", $file->{name}]);
         $file->content($content);
     }
 }
@@ -222,6 +239,9 @@ the scripts. This can be useful for tools that might need it. C<@PACKED_DISTS>
 array lists all the dists that are included in one of the scripts. This also can
 be useful for tools that might need it, like
 L<Dist::Zilla::Plugin::PERLANCAR::CheckDepDists>.
+
+There is also C<# PACKED_CONTENTS_POD> which you can put in your script. It will
+be replaced with POD that list the packed modules/dists.
 
 
 =head1 CONFIGURATION
