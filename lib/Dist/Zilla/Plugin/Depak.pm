@@ -10,6 +10,7 @@ use warnings;
 use App::lcpan::Call qw(call_lcpan_script);
 use Data::Dmp;
 use Dist::Zilla::File::InMemory;
+use ExtUtils::MakeMaker;
 use File::Path qw(make_path);
 use File::Slurper qw(read_binary write_binary);
 use File::Temp qw(tempfile tempdir);
@@ -25,6 +26,7 @@ with (
     },
     'Dist::Zilla::Role::FileGatherer',
     'Dist::Zilla::Role::FileMunger',
+    'Dist::Zilla::Role::MetaProvider',
     'Dist::Zilla::Role::PERLANCAR::WriteModules',
 );
 
@@ -123,9 +125,7 @@ sub munge_script {
 
     #$self->log_debug(["depak result: %s", $depak_res]);
 
-    for (@{ $depak_res->[3]{'func.included_modules'} }) {
-        $self->{_mods}{$_} = 0;
-    }
+    $self->{_mods} = $depak_res->[3]{'func.included_modules'};
 
     # re-add the file instead of changing the content, so we can re-set the
     # encoding to 'bytes'
@@ -146,7 +146,7 @@ sub munge_module {
         $munged++;
         $self->{_mods} //= {};
         $content =~ s/(^#\s*PACKED_MODULES\s*$)/
-            "our \@PACKED_MODULES = \@{" . dmp([sort keys %{$self->{_mods}}]) . "}; $1"/em;
+            "our \%PACKED_MODULES = %{ " . dmp($self->{_mods}) . " }; $1"/em;
         push @pod, "Modules packed into this distribution:\n\n=over\n\n",
             (map {"=item * $_\n\n"} sort keys %{$self->{_mods}}),
             "\n=back\n\n";
@@ -183,12 +183,23 @@ sub munge_module {
     }
 
     if ($munged) {
-        $self->log_debug(["Setting \@PACKED_MODULES / \@PACKED_DISTS / PACKED_CONTENTS_POD in %s", $file->{name}]);
+        $self->log_debug(["Setting %PACKED_MODULES / \@PACKED_DISTS / PACKED_CONTENTS_POD in %s", $file->{name}]);
         $file->content($content);
     }
 }
 
 sub gather_files {}
+
+sub metadata {
+    my $self = shift;
+
+    return {
+        x_Dist_Zilla_Plugin_Depak => {
+            packed_modules => $self->{_mods},
+            packed_dists   => $self->{_dists},
+        },
+    };
+}
 
 __PACKAGE__->meta->make_immutable;
 1;
@@ -218,7 +229,7 @@ ends in C<::Packed>), which contains:
 
 During build, these will be replaced with:
 
- our @PACKED_MODULES = (...); # PACKED_MODULES
+ our %PACKED_MODULES = (...); # PACKED_MODULES
  our @PACKED_DISTS = (...); # PACKED_DISTS
 
 
@@ -233,8 +244,8 @@ the depak configuration.
 
 In addition to replacing scripts with the packed version, it will also search
 for directives C<# PACKED_MODULES> and C<# PACKED_DISTS> in module files and
-replace them with C<@PACKED_MODULES> and C<@PACKED_DISTS>. The
-C<@PACKED_MODULES> array lists all the modules that are included in the one of
+replace them with C<%PACKED_MODULES> and C<@PACKED_DISTS>. The
+C<%PACKED_MODULES> hash lists all the modules that are included in the one of
 the scripts. This can be useful for tools that might need it. C<@PACKED_DISTS>
 array lists all the dists that are included in one of the scripts. This also can
 be useful for tools that might need it, like
