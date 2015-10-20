@@ -1,5 +1,18 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.14    2015-10-20 (PERLANCAR)
+
+	- Adjust to App::depak 0.49.
+
+        - [Incompatible change] Replace @PACKED_MODULES (# PACKED_MODULES) with
+          %PACKED_MODULES which contains module versions.
+
+        - Put list of packed modules/dists in dist metadata.
+
+	- Replace #PACKED_CONTENTS_POD with POD listing packed
+	  modules/dists.
+
+
 0.13    2015-07-27 (PERLANCAR)
 
 	- Deal with modified DZF:OnDisk file.
