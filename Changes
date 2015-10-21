@@ -1,5 +1,11 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.16    2015-10-21 (PERLANCAR)
+
+	- [Bugfix] Workaround for metadata() being executed before
+	  munge_files() and thus _mods is still empty.
+
+
 0.15    2015-10-21 (PERLANCAR)
 
 	- No functional changes.
