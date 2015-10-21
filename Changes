@@ -1,5 +1,12 @@
 Revision history for Dist-Zilla-Plugin-Depak
 
+0.15    2015-10-21 (PERLANCAR)
+
+	- No functional changes.
+
+	- [ux] Warn if there are other FileMunger plugins after us.
+
+
 0.14    2015-10-20 (PERLANCAR)
 
 	- Adjust to App::depak 0.49.
