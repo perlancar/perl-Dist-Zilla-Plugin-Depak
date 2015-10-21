@@ -42,6 +42,27 @@ sub munge_files {
 
     my $self = shift;
 
+    # let's check whether there are other FileMunger plugins and warn it. due to
+    # the nature of this plugin (combines several module files of potentially
+    # different encodings into a single perl file, and thus using the 'bytes'
+    # encoding to combine them all) it might conflict with the other file
+    # mungers, for example PodWeaver which does text munging and uses text
+    # encoding. so, it's best to put this plugin as the last file munger.
+    my $found_me;
+    my @other_file_mungers;
+    for my $p (@{ $self->zilla->plugins }) {
+        if (!$found_me) {
+            if ($p eq $self) { $found_me++ }
+            next;
+        }
+        if ($p->does("Dist::Zilla::Role::FileMunger")) {
+            push @other_file_mungers, $p->plugin_name;
+        }
+    }
+    $self->log(["There are other FileMunger plugins (%s) after this plugin, ".
+                    "this is not recommended because it might cause encoding problems",
+                \@other_file_mungers]) if @other_file_mungers;
+
     my @scripts0 = grep { $_->name =~ m!^(bin|scripts?)! } @{ $self->found_files };
     my @scripts;
     if ($self->include_script) {
