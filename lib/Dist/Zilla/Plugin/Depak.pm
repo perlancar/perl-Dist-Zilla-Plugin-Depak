@@ -146,7 +146,9 @@ sub munge_script {
 
     #$self->log_debug(["depak result: %s", $depak_res]);
 
-    $self->{_mods} = $depak_res->[3]{'func.included_modules'};
+    $self->{_mods} //= {};
+    my $im = $depak_res->[3]{'func.included_modules'};
+    for (keys %$im) { $self->{_mods}{$_} = $im->{$_} }
 
     # re-add the file instead of changing the content, so we can re-set the
     # encoding to 'bytes'
