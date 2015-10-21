@@ -26,7 +26,7 @@ with (
     },
     'Dist::Zilla::Role::FileGatherer',
     'Dist::Zilla::Role::FileMunger',
-    'Dist::Zilla::Role::MetaProvider',
+    #'Dist::Zilla::Role::MetaProvider',
     'Dist::Zilla::Role::PERLANCAR::WriteModules',
 );
 
@@ -41,6 +41,10 @@ sub munge_files {
     #use experimental 'smartmatch';
 
     my $self = shift;
+
+
+    $self->log_debug(["Initializing _mods and _dists"]);
+    $self->{_mods} //= {};
 
     # let's check whether there are other FileMunger plugins and warn it. due to
     # the nature of this plugin (combines several module files of potentially
@@ -84,6 +88,14 @@ sub munge_files {
 
     my @modules  = grep { $_->name =~ m!^(lib)! } @{ $self->found_files };
     $self->munge_module($_) for @modules;
+
+    # we usually do this in metadata(), but for some reason it is now executed
+    # before munge_files() so _mods is still empty
+    $self->log_debug(["Setting dist metadata x_Dist_Zilla_Plugin_Depak"]);
+    $self->zilla->distmeta->{x_Dist_Zilla_Plugin_Depak} = {
+        packed_modules => $self->{_mods},
+        packed_dists   => $self->{_dists},
+    };
 }
 
 sub munge_script {
@@ -146,7 +158,6 @@ sub munge_script {
 
     #$self->log_debug(["depak result: %s", $depak_res]);
 
-    $self->{_mods} //= {};
     my $im = $depak_res->[3]{'func.included_modules'};
     for (keys %$im) { $self->{_mods}{$_} = $im->{$_} }
 
@@ -211,17 +222,14 @@ sub munge_module {
     }
 }
 
-sub gather_files {}
+sub gather_files {
+}
 
 sub metadata {
     my $self = shift;
 
-    return {
-        x_Dist_Zilla_Plugin_Depak => {
-            packed_modules => $self->{_mods},
-            packed_dists   => $self->{_dists},
-        },
-    };
+    # weird, why is metadata() now executed before munge_files()? so let's use
+    # distmeta directly.
 }
 
 __PACKAGE__->meta->make_immutable;
