@@ -195,6 +195,8 @@ sub munge_module {
                 my $res = call_lcpan_script(
                     argv => ["mod2dist", keys %{$self->{_mods}}],
                 );
+                $self->log_fatal(["Can't lcpan mod2dist: %s - %res", $res->[0], $res->[1]])
+                    unless $res->[0] == 200;
                 for (values %$res) {
                     $self->{_dists}{$_} = 0;
                 }
