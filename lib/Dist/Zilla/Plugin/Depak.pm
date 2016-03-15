@@ -16,7 +16,7 @@ use File::Slurper qw(read_binary write_binary);
 use File::Temp qw(tempfile tempdir);
 use File::Which;
 use IPC::System::Options qw(system);
-use JSON;
+use JSON::MaybeXS;
 use List::Util qw(first);
 
 use Moose;
@@ -147,7 +147,7 @@ sub munge_script {
     my $stdout;
     system({die=>1, log=>1, shell=>0, capture_stdout=>\$stdout}, @depak_cmd);
 
-    my $depak_res = JSON::decode_json($stdout);
+    my $depak_res = JSON::MaybeXS::decode_json($stdout);
     $self->log_fatal(["depak failed: %s", $depak_res])
         unless $depak_res->[0] == 200;
 
