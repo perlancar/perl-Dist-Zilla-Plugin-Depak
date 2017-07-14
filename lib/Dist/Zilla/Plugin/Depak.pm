@@ -32,6 +32,7 @@ with (
 
 has include_script => (is => 'rw');
 has exclude_script => (is => 'rw');
+has put_hook_at_the_end => (is => 'rw');
 
 use namespace::autoclean;
 
@@ -141,6 +142,10 @@ sub munge_script {
             "--config-profile", $profile,
             "--config-path", "depak.conf",
         );
+    }
+
+    if ($self->put_hook_at_the_end) {
+        push @depak_cmd, "--put-hook-at-the-end";
     }
 
     $self->log_debug(["Depak-ing %s: %s", $file->{name}, \@depak_cmd]);
@@ -304,6 +309,10 @@ scripts in the distribution.
 =head2 exclude_script = str+
 
 Exclude a script. Can be specified multiple times.
+
+=head2 put_hook_at_the_end => bool
+
+Will be passed to C<depak>.
 
 
 =head1 SEE ALSO
