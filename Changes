@@ -1,16 +1,16 @@
-0.21    2017-07-14 (PERLANCAR)
+0.21    2017-07-14  Released-By: PERLANCAR
 
 	- Add configuration: put_hook_at_the_end (depak 0.56).
 
 
-0.20    2016-03-16 (PERLANCAR)
+0.20    2016-03-16  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- Replace JSON with JSON::MaybeXS.
 
 
-0.19    2016-02-22 (PERLANCAR)
+0.19    2016-02-22  Released-By: PERLANCAR
 
 	- [Bugfix] Handle case when 'lcpan mod2dist' returns only a single
 	  result (str instead of hash).
@@ -18,14 +18,14 @@
 	- [Bugfix] Missed an adjustment for App::lcpan::Call 0.07.
 
 
-0.18    2016-02-14 (PERLANCAR)
+0.18    2016-02-14  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- Adjust to App::lcpan::Call 0.07.
 
 
-0.17    2015-11-07 (PERLANCAR)
+0.17    2015-11-07  Released-By: PERLANCAR
 
 	- No functional changes.
 
@@ -33,20 +33,20 @@
 	  version.
 
 
-0.16    2015-10-21 (PERLANCAR)
+0.16    2015-10-21  Released-By: PERLANCAR
 
 	- [Bugfix] Workaround for metadata() being executed before
 	  munge_files() and thus _mods is still empty.
 
 
-0.15    2015-10-21 (PERLANCAR)
+0.15    2015-10-21  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- [ux] Warn if there are other FileMunger plugins after us.
 
 
-0.14    2015-10-20 (PERLANCAR)
+0.14    2015-10-20  Released-By: PERLANCAR
 
 	- Adjust to App::depak 0.49.
 
@@ -59,24 +59,24 @@
 	  modules/dists.
 
 
-0.13    2015-07-27 (PERLANCAR)
+0.13    2015-07-27  Released-By: PERLANCAR
 
 	- Deal with modified DZF:OnDisk file.
 
 
-0.12    2015-07-07 (PERLANCAR)
+0.12    2015-07-07  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- Remove old deprecation notice.
 
 
-0.11    2015-07-06 (PERLANCAR)
+0.11    2015-07-06  Released-By: PERLANCAR
 
 	- [Bugfix] Typo (referred to wrong hash key).
 
 
-0.10    2015-07-06 (PERLANCAR)
+0.10    2015-07-06  Released-By: PERLANCAR
 
 	- No functional changes.
 
@@ -84,54 +84,54 @@
 	  to a separate role.
 
 
-0.09    2015-07-05 (PERLANCAR)
+0.09    2015-07-05  Released-By: PERLANCAR
 
 	- Write built modules to a tempdir and feed it to depak via
 	  --include-dir, so that packed script contains built version of
 	  dist modules.
 
 
-0.08    2015-07-04 (PERLANCAR)
+0.08    2015-07-04  Released-By: PERLANCAR
 
 	- Undeprecate, encoding issue (can't re-set encoding of a script
 	  after another plugin has set it) can be resolved by
 	  prune+re-adding the script.
 
 
-0.07    2015-07-04 (PERLANCAR)
+0.07    2015-07-04  Released-By: PERLANCAR
 
         - Deprecate in favor of DZP:DepakFile.
 
 
-0.06    2015-07-04 (PERLANCAR)
+0.06    2015-07-04  Released-By: PERLANCAR
 
 	- Fix encoding issue (need to set to 'bytes').
 
 
-0.05    2015-07-04 (PERLANCAR)
+0.05    2015-07-04  Released-By: PERLANCAR
 
         - Rename dist from Dist-Zilla-Plugin-Fatten to Dist-Zilla-Plugin-Depak,
           use depak instead of fatten.
 
 
-0.04    2015-06-14 (PERLANCAR)
+0.04    2015-06-14  Released-By: PERLANCAR
 
         - No functional changes.
 
         - Re-release to get indexed by PAUSE.
 
 
-0.03    2015-05-16 (PERLANCAR)
+0.03    2015-05-16  Released-By: PERLANCAR
 
         - [Bugfix] Fix bug when dumping array.
 
 
-0.02    2015-05-16 (PERLANCAR)
+0.02    2015-05-16  Released-By: PERLANCAR
 
 	- Replace # FATTENED_MODULES and # FATTENED_DISTS with 'our
 	  @FATTENED_MODULES' and 'our @FATTENED_DISTS' to help tools.
 
 
-0.01    2015-04-11 (PERLANCAR)
+0.01    2015-04-11  Released-By: PERLANCAR
 
          - First release.
